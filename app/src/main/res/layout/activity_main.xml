@@ -90,7 +90,7 @@
         android:layout_marginTop="10sp"
         android:id="@+id/mailTV"/>
 
-    <com.google.android.common.SingInbutton
+    < com.google.android.gms.common.SignInButton
         android:layout_width="200sp"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
