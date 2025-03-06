@@ -1,14 +1,9 @@
 package com.example.simplecalculator;
 
-import static com.example.simplecalculator.R.id.tvResult;
-
 import android.annotation.SuppressLint;
-import android.hardware.biometrics.BiometricPrompt;
-import android.media.SoundPool;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,58 +19,78 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.GoogleAuthProvider;
 
-import kotlinx.coroutines.scheduling.Task;
+import java.util.Objects;
 
- public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends AppCompatActivity {
      FirebaseAuth auth;
 
      GoogleSignInClient googleSignInClient;
 
-     ShapeableImageView ImageView;
+     ShapeableImageView imageView;
 
      TextView name, mail;
 
-     private final ActivityResultLauncher<Integer> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
-         @Override
-         public void onActivityResult(ActivityResult result)
-         {
-             if (result.getResultCode() == RESULT_OK){
-                     Task<googleSignInAccount> accountTask = GoogleSignIn.getSignedInAccountFromSimpleCalculator(result.getData());
-                 try {
-                     GoogleSignInAccount SignInAccount = accountTask.getResult(ApiException.class);
-                     AuthCredentical authCredentical = GoogleAuthProvider.getCredential(SignInAccount.getIdToken(), null);
-                     auth.signInWithCredential(authCredentical).addOnCompleteListener(new OnLoadCompleteListener<AuthResult>())
-                     {
-                         @Override
-                         public void onComplete (@NonNull Task < AuthResult > task)
-                         {
-                             if (task.isSuccessful()) {
-                                 auth = FirebaseAuth.getInstance();
-                                 Glide.with(MainActivity.this).load(Object.requireNonNull(auth.getCurrentUser()).getPhotoUrl()).into(ImageView);
-                                 name.setText(auth.getCurrentUser().getDisplayName());
-                                 mail.setText(auth.getCurrentUser().getEmail());
-                                 Toast.makeText(MainActivity.this, text:
-                                 "Signed in succssesfully!", Toast.LENGTH_SHORT).show();
-                             } else {
-                                 Toast.makeText(MainActivity.this, text:
-                                 "Failed to sign in: " + task.getExeption(), Toast.LENGTH_SHORT).
-                                 show();
-                             }
-                         }
-                     });
+    private final ActivityResultLauncher<Intent> activityResultLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                    new ActivityResultCallback<ActivityResult>()
+                    {
+                        @Override
+                        public void onActivityResult(ActivityResult result) {
+                            if (result.getResultCode() == RESULT_OK) {
+                                Task<GoogleSignInAccount> accountTask =
+                                        GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+                                try {
+                                    GoogleSignInAccount signInAccount =
+                                            accountTask.getResult(ApiException.class);
+                                    AuthCredential authCredential =
+                                            GoogleAuthProvider.getCredential(signInAccount.getIdToken(), null);
+                                    auth.signInWithCredential(authCredential)
+                                            .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                                    if (task.isSuccessful()) {
+                                                        auth = FirebaseAuth.getInstance();
+                                                        Glide.with(MainActivity.this)
+                                                                .load(Objects.requireNonNull(auth.getCurrentUser()).getPhotoUrl())
+                                                                .into(imageView);
+                                                        name.setText(auth.getCurrentUser().getDisplayName());
+                                                        mail.setText(auth.getCurrentUser().getEmail());
+                                                        Toast.makeText(MainActivity.this,
+                                                                "Signed in successfully!", Toast.LENGTH_SHORT).show();
+                                                    } else {
+                                                        Toast.makeText(MainActivity.this,
+                                                                "Failed to sign in: " + task.getException(),
+                                                                Toast.LENGTH_SHORT).show();
+                                                    }
+                                                }
+                                            });
+                                } catch (ApiException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    });
 
-                 } catch (ApiException e) {
-                     throw new RuntimeException(e);
-                     e.printStackTrace();
-                 }
-             }
-         }
-     });
 
-     @Override
-     protected void onCreate(Bundle savedInstanceState) {
+
+    @Override
+         protected void onCreate(Bundle savedInstanceState) {
          super.onCreate(savedInstanceState);
          EdgeToEdge.enable(this);
          setContentView(R.layout.activity_main);
@@ -93,24 +108,16 @@ import kotlinx.coroutines.scheduling.Task;
 
          auth = FirebaseAuth.getInstance();
 
-         SignInButton SignInButton = findViewById(R.id.SingIn);
-         SignInButton.setOnClickListener(new View.OnClickListener()){
-             SimpleCalculator SimpleCalculator = googleSignInClient.getSignInSimpleCalculator();
-             activityResultLauncher.launch(SimpleCalculator);
-         }
+             SignInButton signInButton = findViewById(R.id.SignIn); // שמות במדויק!
+             signInButton.setOnClickListener(new View.OnClickListener() {
+                 @Override
+                 public void onClick(View view) {
+                     Intent intent = googleSignInClient.getSignInIntent();
+                     activityResultLauncher.launch(intent);
+                 }
+             });
 
-
-
-
-
-
-
-
-
-
-
-
-         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.btnMult), (v, insets) -> {
+             ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.btnMult), (v, insets) -> {
              Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
              v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
              return insets;
@@ -122,27 +129,27 @@ import kotlinx.coroutines.scheduling.Task;
      @SuppressLint("SetTextI18n")
      public void onBtnClicked(View view) {
 
-         @SuppressLint("WrongViewCast") EditText et1 = findViewById(tvResult);
-         String et1Text = et1.getText().toString();
-         Integer num1 = Integer.valueOf(et1Text);
+       //  @SuppressLint("WrongViewCast") EditText et1 = findViewById(tvResult);
+       //  String et1Text = et1.getText().toString();
+       //  Integer num1 = Integer.valueOf(et1Text);
 
-         @SuppressLint("WrongViewCast") EditText et2 = findViewById(R.id.btnMult);
-         String et2Text = et2.getText().toString();
-         Integer num2 = Integer.valueOf(et2Text);
+        // @SuppressLint("WrongViewCast") EditText et2 = findViewById(R.id.btnMult);
+       //  String et2Text = et2.getText().toString();
+         //Integer num2 = Integer.valueOf(et2Text);
 
-         Integer result = null;
-         if (view.getId() == R.id.btnPlus)
-             result = num1 + num2;
-         if (view.getId() == R.id.btnMinus)
-             result = num1 - num2;
-         if (view.getId() == R.id.btnMult)
-             result = num1 * num2;
-         if (view.getId() == R.id.btnDiv)
-             result = num1 / num2;
-         if (result != null) {
-             TextView tvRes = findViewById(tvResult);
-             tvRes.setText(result.toString());
-         }
+         //Integer result = null;
+         //if (view.getId() == R.id.btnPlus)
+           //  result = num1 + num2;
+         //if (view.getId() == R.id.btnMinus)
+           //  result = num1 - num2;
+         //if (view.getId() == R.id.btnMult)
+            // result = num1 * num2;
+        // if (view.getId() == R.id.btnDiv)
+             //result = num1 / num2;
+        // if (result != null) {
+         //    TextView tvRes = findViewById(R.id.tv);
+         //    tvRes.setText(result.toString());
+         //}
 
 
      }
