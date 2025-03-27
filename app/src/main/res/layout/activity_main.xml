@@ -22,7 +22,7 @@
         app:layout_constraintVertical_bias="0.805"
         tools:ignore="HardcodedText" />
 
-    <!-- כפתור לחיסור -->
+
     <Button
         android:id="@+id/btnMinus"
         android:layout_width="wrap_content"
@@ -37,7 +37,7 @@
         app:layout_constraintVertical_bias="0.805"
         tools:ignore="HardcodedText" />
 
-    <!-- כפתור לכפל -->
+
     <Button
         android:id="@+id/btnMult"
         android:layout_width="wrap_content"
@@ -52,7 +52,7 @@
         app:layout_constraintVertical_bias="0.805"
         tools:ignore="HardcodedText" />
 
-    <!-- כפתור לחילוק -->
+
     <Button
         android:id="@+id/btnDiv"
         android:layout_width="wrap_content"
